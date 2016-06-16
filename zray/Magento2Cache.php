@@ -14,7 +14,6 @@ class Magento2Cache
     
     public function cacheLoad($context, &$storage)
     {
-        
         $identifier = $context['functionArgs'][0];
         $cacheKey = $this->cacheKeyMap[strtoupper($identifier)];
         
@@ -27,25 +26,33 @@ class Magento2Cache
         $metadatas['expire formatted'] = $expire;
         $metadatas['mtime formatted'] = date('Y-m-d H:i:s', $metadatas['mtime']);
         
-        $storage['cacheLoad'][$identifier] = array_merge(array('cache_key' => $cacheKey), $metadatas);
+        $storage['cacheLoad'][$identifier] = array_merge(
+            array('cache_key' => $cacheKey),
+            array('content' => $this->getCacheData($context['returnValue'])),
+            $metadatas
+        );
     }
     
     public function cacheSave($context, &$storage)
     {
-        try {
-            $data = unserialize($context['functionArgs'][0]);
-        }
-        catch (\Exception $e) {
-            $data = $e->getMessage();
-        }
-        
         $cacheItem = array();
         
-        $cacheItem['data'] = $data;
+        $cacheItem['data'] = $this->getCacheData($context['functionArgs'][0]);
         $cacheItem['identifier'] = $context['functionArgs'][1];
         $cacheItem['tags'] = $context['functionArgs'][2];
         $cacheItem['lifeTime'] = $context['functionArgs'][3];
         
         $storage['cacheSave'][$cacheItem['identifier']] = array($cacheItem);
+    }
+    
+    private function getCacheData($data) {
+        try {
+            $data = unserialize($data);
+        }
+        catch (\Exception $e) {
+            $data = $e->getMessage();
+        }
+        
+        return $data;
     }
 }
