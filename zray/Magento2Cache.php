@@ -50,7 +50,7 @@ class Magento2Cache
             $data = unserialize($data);
         }
         catch (\Exception $e) {
-            $data = $e->getMessage();
+            $data = htmlspecialchars($data);
         }
         
         return $data;
